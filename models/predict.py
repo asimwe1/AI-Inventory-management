@@ -28,7 +28,7 @@ class DemandPredictor:
             # Load Prophet models
             for model_file in self.model_path.glob("prophet_model_*.json"):
                 product_id = model_file.stem.split('_')[-1]
-                self.models[product_id] = Prophet.load(str(model_file))
+                self.models[product_id] = joblib.load(str(model_file))
             
             # Load feature models and scaler
             self.feature_models = joblib.load(self.model_path / "feature_models.joblib")

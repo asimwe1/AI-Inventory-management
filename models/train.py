@@ -94,7 +94,7 @@ class DemandForecaster:
         # Save Prophet models
         for product_id, model in self.models.items():
             model_path = self.model_path / f"prophet_model_{product_id}.json"
-            model.save(str(model_path))
+            joblib.dump(model, str(model_path))
         
         # Save feature models and scaler
         joblib.dump(self.feature_models, self.model_path / "feature_models.joblib")

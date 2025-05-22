@@ -1,38 +1,23 @@
-# Data Processing
+# Essential Data Processing and ML
 pandas==2.1.4
 numpy==1.26.3
-python-dateutil==2.8.2
-
-# Machine Learning
 scikit-learn==1.3.2
 prophet==1.1.5
-xgboost==2.0.3
 joblib==1.3.2
 
-# Backend
-fastapi==0.109.2
-uvicorn==0.27.1
-sqlalchemy==2.0.25
-pydantic==2.6.1
-python-multipart==0.0.6
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
+# Backend (will install later)
+# fastapi==0.109.2
+# uvicorn==0.27.1
+# sqlalchemy==2.0.25
+# pydantic==2.6.1
 
-# Database
-sqlite3-api==0.1.0
-psycopg2-binary==2.9.9  # For PostgreSQL support
+# Development (will install later)
+# black==24.1.1
+# flake8==7.0.0
+# isort==5.13.2
+# mypy==1.8.0
 
-# Testing
-pytest==7.4.4
-pytest-asyncio==0.23.5
-
-# Development
-black==24.1.1
-flake8==7.0.0
-isort==5.13.2
-mypy==1.8.0
-
-# Utilities
-python-dotenv==1.0.1
-requests==2.31.0
-tqdm==4.66.1 
+# Utilities (will install later)
+# python-dotenv==1.0.1
+# requests==2.31.0
+# tqdm==4.66.1 

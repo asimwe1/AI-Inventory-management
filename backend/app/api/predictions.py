@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from database.database import get_db
-from database.models import Product
+from app.database.database import get_db
+from app.database.models import Product
+from app.models.predict import DemandPredictor
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import logging
-from models.predict import DemandPredictor
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
 

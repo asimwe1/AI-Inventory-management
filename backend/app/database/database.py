@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from contextlib import contextmanager
 import os
 from dotenv import load_dotenv
 import logging
 from sqlalchemy.exc import SQLAlchemyError
+from .models import Base  # Import Base from models
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Get database URL from environment variable
-# Default to SQLite for development if not set
+# Default to PostgreSQL connection if not set
 SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "sqlite:///./inventory.db"
+    "postgresql://postgres:postgres@localhost:5432/inventory_db"
 )
 
 # Configure PostgreSQL connection pool
@@ -28,28 +28,22 @@ POSTGRES_POOL_TIMEOUT = int(os.getenv("POSTGRES_POOL_TIMEOUT", "30"))
 def get_engine():
     """Create and return a database engine with appropriate configuration."""
     try:
-        if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
-            # PostgreSQL configuration
-            engine = create_engine(
-                SQLALCHEMY_DATABASE_URL,
-                pool_size=POSTGRES_POOL_SIZE,
-                max_overflow=POSTGRES_MAX_OVERFLOW,
-                pool_timeout=POSTGRES_POOL_TIMEOUT,
-                pool_pre_ping=True,  # Enable connection health checks
-                echo=os.getenv("DEBUG", "False").lower() == "true"
-            )
-            logger.info("Connected to PostgreSQL database")
-        else:
-            # SQLite configuration (for development)
-            engine = create_engine(
-                SQLALCHEMY_DATABASE_URL,
-                connect_args={"check_same_thread": False}
-            )
-            logger.info("Connected to SQLite database (development mode)")
-
+        # Always use PostgreSQL configuration
+        engine = create_engine(
+            SQLALCHEMY_DATABASE_URL,
+            pool_size=POSTGRES_POOL_SIZE,
+            max_overflow=POSTGRES_MAX_OVERFLOW,
+            pool_timeout=POSTGRES_POOL_TIMEOUT,
+            pool_pre_ping=True,  # Enable connection health checks
+            echo=True  # Enable SQL query logging
+        )
+        logger.info(f"Connecting to PostgreSQL database at {SQLALCHEMY_DATABASE_URL}")
         return engine
     except Exception as e:
         logger.error(f"Error creating database engine: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
 # Create engine
@@ -62,34 +56,31 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-Base = declarative_base()
-
-@contextmanager
 def get_db():
-    """Provide a transactional scope around a series of operations."""
     db = SessionLocal()
     try:
         yield db
-        db.commit()
-    except SQLAlchemyError as e:
-        db.rollback()
-        logger.error(f"Database error: {e}")
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Unexpected error: {e}")
-        raise
     finally:
         db.close()
 
 def init_db():
     """Initialize the database, creating all tables."""
     try:
-        from .models import Base
+        logger.info("Creating database tables...")
+        # Log all tables that will be created
+        for table in Base.metadata.tables.values():
+            logger.info(f"Creating table: {table.name}")
+            for column in table.columns:
+                logger.info(f"  Column: {column.name} ({column.type})")
+        
+        # Create tables
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
     except Exception as e:
-        logger.error(f"Error initializing database: {e}")
+        logger.error(f"Error creating database tables: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise
 
 def check_db_connection():

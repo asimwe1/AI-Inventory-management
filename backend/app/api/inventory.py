@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
-from database.database import get_db
-from database.models import Product, InventoryTransaction, TransactionType
+from app.database.database import get_db
+from app.database.models import Product, InventoryTransaction, TransactionType
 from pydantic import BaseModel, Field
 from datetime import datetime
 import logging

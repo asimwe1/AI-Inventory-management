@@ -75,11 +75,14 @@ AI_driven_Inventory/
 
 Currently in initial development phase. Features implemented:
 - [x] Project structure setup
-- [ ] Mock data generation
-- [ ] Data cleaning pipeline
-- [ ] Basic ML model implementation
-- [ ] Backend API endpoints
-- [ ] Frontend dashboard
+- [x] Mock data generation
+- [x] Data cleaning pipeline
+- [x] Basic ML model implementation
+- [x] Backend API endpoints
+- [x] Frontend dashboard
+- [ ] integration 
+- [ ] Deployment setup
+
 
 ## Contributing
 

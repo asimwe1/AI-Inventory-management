@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: inventory-management-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: POSTGRES_POOL_SIZE
+        value: 5
+      - key: POSTGRES_MAX_OVERFLOW
+        value: 10
+      - key: POSTGRES_POOL_TIMEOUT
+        value: 30
+      - key: DEBUG
+        value: "False" 

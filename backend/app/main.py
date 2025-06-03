@@ -6,6 +6,7 @@ import logging
 import traceback
 from app.database.database import init_db, check_db_connection
 from app.api import products_router, inventory_router, predictions_router
+import os
 
 # Set up logging
 logging.basicConfig(
@@ -101,7 +102,9 @@ async def startup_event():
     try:
         # Check database connection first
         if not check_db_connection():
-            raise Exception("Failed to connect to database")
+            logger.error("Database connection failed. Please check your DATABASE_URL environment variable.")
+            logger.error(f"Current DATABASE_URL: {os.getenv('DATABASE_URL', 'Not set')}")
+            raise Exception("Failed to connect to database. Check logs for details.")
             
         # Initialize database
         init_db()

@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Get database URL from environment variable
-# Default to PostgreSQL connection if not set
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/inventory_db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set")
 
 # Handle Render's database URL format
 if DATABASE_URL.startswith("postgres://"):
@@ -40,7 +41,13 @@ def get_engine():
             pool_pre_ping=True,  # Enable connection health checks
             echo=True  # Enable SQL query logging
         )
-        logger.info(f"Connecting to PostgreSQL database at {SQLALCHEMY_DATABASE_URL}")
+        # Log connection info without sensitive data
+        db_url_parts = SQLALCHEMY_DATABASE_URL.split('@')
+        if len(db_url_parts) > 1:
+            safe_url = f"postgresql://***:***@{db_url_parts[1]}"
+        else:
+            safe_url = "postgresql://***:***@***"
+        logger.info(f"Connecting to PostgreSQL database at {safe_url}")
         return engine
     except Exception as e:
         logger.error(f"Error creating database engine: {e}")

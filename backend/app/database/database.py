@@ -28,7 +28,7 @@ for key in os.environ:
         logger.info(f"Found environment variable: {key}={masked_value}")
 
 # Get database URL from environment variable
-DATABASE_URL = os.environ.get("DATABASE_URL")  # Use environ.get instead of getenv
+DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     logger.error("DATABASE_URL environment variable is not set")
     raise ValueError("DATABASE_URL environment variable is not set")
@@ -37,6 +37,11 @@ if not DATABASE_URL:
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     logger.info("Converted postgres:// to postgresql:// format")
+
+# Validate database URL format
+if not DATABASE_URL.startswith("postgresql://"):
+    logger.error(f"Invalid DATABASE_URL format: {DATABASE_URL}")
+    raise ValueError("DATABASE_URL must start with postgresql://")
 
 SQLALCHEMY_DATABASE_URL = DATABASE_URL
 

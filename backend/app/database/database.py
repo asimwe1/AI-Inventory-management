@@ -10,17 +10,33 @@ from .models import Base  # Import Base from models
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env file only if not in production
+if os.getenv("ENVIRONMENT") != "production":
+    load_dotenv()
+
+# Debug: Print all environment variables (without sensitive data)
+logger.info("Environment variables loaded")
+for key in os.environ:
+    if 'DATABASE' in key:
+        value = os.environ[key]
+        if '@' in value:
+            # Mask sensitive parts of the URL
+            parts = value.split('@')
+            masked_value = f"***:***@{parts[1]}"
+        else:
+            masked_value = "***"
+        logger.info(f"Found environment variable: {key}={masked_value}")
 
 # Get database URL from environment variable
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")  # Use environ.get instead of getenv
 if not DATABASE_URL:
+    logger.error("DATABASE_URL environment variable is not set")
     raise ValueError("DATABASE_URL environment variable is not set")
 
 # Handle Render's database URL format
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    logger.info("Converted postgres:// to postgresql:// format")
 
 SQLALCHEMY_DATABASE_URL = DATABASE_URL
 

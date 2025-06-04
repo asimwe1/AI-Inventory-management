@@ -1,0 +1,6 @@
+total_products: 50
+total_sales_records: 18300
+date_range: {'start': Timestamp('2024-05-22 13:57:36.235270'), 'end': Timestamp('2025-05-22 13:57:36.235270')}
+avg_daily_sales: 5.619562841530054
+total_sales_quantity: 102838
+avg_stock_level: 50.40650273224044

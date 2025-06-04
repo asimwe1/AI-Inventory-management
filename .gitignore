@@ -1,0 +1,15 @@
+# Python bytecode (__pycache__) and virtual environment (venv)
+__pycache__/
+venv/
+
+# Generated CSV files (for example, inventory advice and predictions)
+models/saved/inventory_advice.csv
+models/saved/inventory_advice_summary.csv
+models/predictions/*.csv
+
+# (Optional) Ignore any local configuration or secrets (e.g. .env)
+# .env
+
+# (Optional) Ignore IDE artifacts (e.g. .vscode, .idea)
+.vscode/
+.idea/ 

@@ -99,14 +99,15 @@ export default function AlertsPage() {
       setSortDirection("asc")
     }
   }
-
+console.log(products)
   const getLowStockProducts = () => {
-    return products.filter(
+    return products?.filter(
       (product) =>
         product.current_stock <= (product.reorder_point || product.min_stock_level)
     )
   }
 
+  
   const filteredProducts = getLowStockProducts()
     .filter((product) =>
       Object.values(product).some((value) =>

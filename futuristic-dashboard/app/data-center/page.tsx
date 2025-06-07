@@ -72,7 +72,7 @@ export default function DataCenterPage() {
                 </thead>
                 <tbody>
                   {serverStatus.map((s) => (
-                    <tr key={s.name} className="border-b border-slate-700/50">
+                    <tr key={s.name} className="border-b text-slate-300 border-slate-700/50">
                       <td className="py-2 flex items-center gap-2">
                         <HardDrive className="h-4 w-4 text-cyan-500" /> {s.name}
                       </td>
@@ -102,7 +102,7 @@ export default function DataCenterPage() {
                 </thead>
                 <tbody>
                   {backupInfo.map((b) => (
-                    <tr key={b.date} className="border-b border-slate-700/50">
+                    <tr key={b.date} className="border-b text-slate-300 border-slate-700/50">
                       <td className="py-2">{b.date}</td>
                       <td className={b.status === "Success" ? "text-green-500" : "text-red-400"}>{b.status}</td>
                       <td className="text-slate-300">{b.size}</td>

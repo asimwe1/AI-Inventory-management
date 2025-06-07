@@ -67,7 +67,7 @@ export default function NetworkPage() {
                 <tbody>
                   {recentEvents.map((e, i) => (
                     <tr key={i} className="border-b border-slate-700/50">
-                      <td className="py-2">{e.time}</td>
+                      <td className="py-2 text-slate-300 ">{e.time}</td>
                       <td className={
                         e.type === "success"
                           ? "text-green-500"

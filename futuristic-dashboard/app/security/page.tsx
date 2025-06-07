@@ -66,7 +66,7 @@ export default function SecurityPage() {
                 <tbody>
                   {recentAlerts.map((a, i) => (
                     <tr key={i} className="border-b border-slate-700/50">
-                      <td className="py-2">{a.time}</td>
+                      <td className="py-2 text-slate-300">{a.time}</td>
                       <td className={
                         a.type === "warning"
                           ? "text-amber-500"
@@ -98,7 +98,7 @@ export default function SecurityPage() {
                 </thead>
                 <tbody>
                   {accessLogs.map((log, i) => (
-                    <tr key={i} className="border-b border-slate-700/50">
+                    <tr key={i} className="border-b text-slate-100 border-slate-700/50">
                       <td className="py-2">{log.user}</td>
                       <td className="py-2">{log.time}</td>
                       <td className="py-2">{log.action}</td>

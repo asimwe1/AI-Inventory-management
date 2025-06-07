@@ -157,8 +157,8 @@ export default function ProductsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold flex items-center">
-                <Package className="mr-2 h-6 w-6 text-cyan-500" />
+              <CardTitle className="text-2xl text-cyan-500 font-bold flex items-center">
+                <Package className="mr-2 h-6 w-6" />
                 Products
               </CardTitle>
               <CardDescription>

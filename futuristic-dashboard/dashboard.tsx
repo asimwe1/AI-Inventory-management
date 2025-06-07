@@ -16,7 +16,6 @@ import {
   Hexagon,
   LineChart,
   Lock,
-  type LucideIcon,
   MessageSquare,
   Mic,
   Moon,
@@ -36,6 +35,7 @@ import {
   TrendingDown,
   Box,
   DollarSign,
+  type LucideIcon,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -96,8 +96,6 @@ interface CheckProps {
   className?: string;
 }
 
-const DEMO_MODE = true;
-
 export default function Dashboard() {
   const [theme, setTheme] = useState<"dark" | "light">("dark")
   const [systemStatus, setSystemStatus] = useState(85)
@@ -107,6 +105,7 @@ export default function Dashboard() {
   const [securityLevel, setSecurityLevel] = useState(75)
   const [currentTime, setCurrentTime] = useState(new Date())
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Inventory states
   const [products, setProducts] = useState<Product[]>([])
@@ -120,193 +119,93 @@ export default function Dashboard() {
 
   // Fetch inventory data
   useEffect(() => {
-    if (DEMO_MODE) {
-      // Mock data for demo mode
-      const mockProducts = [
-        {
-          id: "1",
-          name: "Wireless Mouse",
-          description: "Ergonomic wireless mouse",
-          category: "Electronics",
-          sku: "WM-1001",
-          unit_price: 25.99,
-          min_stock_level: 10,
-          max_stock_level: 100,
-          lead_time_days: 7,
-          current_stock: 8,
-          reorder_point: 12,
-          created_at: "2024-06-01T10:00:00Z",
-          updated_at: "2024-06-10T10:00:00Z",
-        },
-        {
-          id: "2",
-          name: "Mechanical Keyboard",
-          description: "RGB backlit keyboard",
-          category: "Electronics",
-          sku: "MK-2002",
-          unit_price: 79.99,
-          min_stock_level: 5,
-          max_stock_level: 50,
-          lead_time_days: 10,
-          current_stock: 20,
-          reorder_point: 8,
-          created_at: "2024-06-02T10:00:00Z",
-          updated_at: "2024-06-10T10:00:00Z",
-        },
-        {
-          id: "3",
-          name: "USB-C Cable",
-          description: "1m fast charging cable",
-          category: "Accessories",
-          sku: "UC-3003",
-          unit_price: 9.99,
-          min_stock_level: 20,
-          max_stock_level: 200,
-          lead_time_days: 5,
-          current_stock: 50,
-          reorder_point: 25,
-          created_at: "2024-06-03T10:00:00Z",
-          updated_at: "2024-06-10T10:00:00Z",
-        },
-      ];
-      setProducts(mockProducts);
-      setTotalInventoryValue(
-        mockProducts.reduce((sum, p) => sum + p.current_stock * p.unit_price, 0)
-      );
-      const lowStock = mockProducts.filter(
-        (p) => p.current_stock <= (p.reorder_point || p.min_stock_level)
-      );
-      setLowStockItems(lowStock);
-      setStockAlerts(
-        lowStock.map((product) => {
-          const daysUntilReorder = product.current_stock /
-            (product.max_stock_level / product.lead_time_days);
-          const urgency = daysUntilReorder <= 2 ? "HIGH" : daysUntilReorder <= 5 ? "MEDIUM" : "LOW";
-          return { product, urgency };
-        })
-      );
-      setTransactions([
-        {
-          id: 1,
-          product_id: "1",
-          transaction_type: "received",
-          quantity: 30,
-          previous_stock: 0,
-          new_stock: 30,
-          reference_number: "PO-12345",
-          notes: "Initial stock",
-          created_at: "2024-06-05T09:00:00Z",
-        },
-        {
-          id: 2,
-          product_id: "2",
-          transaction_type: "shipped",
-          quantity: 5,
-          previous_stock: 25,
-          new_stock: 20,
-          reference_number: "SO-54321",
-          notes: "Order #54321",
-          created_at: "2024-06-07T14:00:00Z",
-        },
-        {
-          id: 3,
-          product_id: "3",
-          transaction_type: "received",
-          quantity: 50,
-          previous_stock: 0,
-          new_stock: 50,
-          reference_number: "PO-67890",
-          notes: "Restock",
-          created_at: "2024-06-08T11:00:00Z",
-        },
-      ]);
-      setInventoryAdvice([
-        {
-          product_id: "1",
-          advice: "Stock is below minimum. Reorder 50 units soon.",
-          order_quantity: 50,
-          reorder_point: 12,
-          days_of_stock: 1.5,
-          urgency: "HIGH",
-        },
-        {
-          product_id: "2",
-          advice: "Stock is healthy. No action needed.",
-          order_quantity: 0,
-          reorder_point: 8,
-          days_of_stock: 10,
-          urgency: "LOW",
-        },
-        {
-          product_id: "3",
-          advice: "Stock is above reorder point. Monitor sales.",
-          order_quantity: 0,
-          reorder_point: 25,
-          days_of_stock: 15,
-          urgency: "LOW",
-        },
-      ]);
-      setIsLoading(false);
-      return;
-    }
     const fetchInventoryData = async () => {
       try {
         // Fetch products
-        const productsResponse = await fetch('http://localhost:8000/products')
-        const productsData = await productsResponse.json()
-        setProducts(productsData)
+        const productsResponse = await fetch('http://localhost:8000/api/products/products/');
+        if (!productsResponse.ok) {
+          throw new Error(`Failed to fetch products: HTTP ${productsResponse.status}`);
+        }
+        const productsData = await productsResponse.json();
+        console.log("Products response:", productsData);
+        if (!Array.isArray(productsData)) {
+          throw new Error("Products data is not an array");
+        }
+        setProducts(productsData);
 
         // Calculate total inventory value
         const totalValue = productsData.reduce((sum: number, product: Product) => 
-          sum + (product.current_stock * product.unit_price), 0)
-        setTotalInventoryValue(totalValue)
+          sum + (product.current_stock * product.unit_price), 0);
+        setTotalInventoryValue(totalValue);
 
         // Identify low stock items
         const lowStock = productsData.filter((product: Product) => 
-          product.current_stock <= (product.reorder_point || product.min_stock_level))
-        setLowStockItems(lowStock)
+          product.current_stock <= (product.reorder_point || product.min_stock_level));
+        setLowStockItems(lowStock);
 
         // Generate stock alerts
         const alerts = lowStock.map((product: Product) => {
           const daysUntilReorder = product.current_stock / 
-            (product.max_stock_level / product.lead_time_days)
+            (product.max_stock_level / product.lead_time_days);
           const urgency = daysUntilReorder <= 2 ? 'HIGH' : 
-                         daysUntilReorder <= 5 ? 'MEDIUM' : 'LOW'
-          return { product, urgency }
-        })
-        setStockAlerts(alerts)
+                         daysUntilReorder <= 5 ? 'MEDIUM' : 'LOW';
+          return { product, urgency };
+        });
+        setStockAlerts(alerts);
 
         // Fetch recent transactions
-        const transactionsResponse = await fetch('http://localhost:8000/inventory/transactions')
-        const transactionsData = await transactionsResponse.json()
-        setTransactions(transactionsData)
+        const transactionsResponse = await fetch('http://localhost:8000/api/inventory/inventory/transactions');
+        if (!transactionsResponse.ok) {
+          throw new Error(`Failed to fetch transactions: HTTP ${transactionsResponse.status}`);
+        }
+        const transactionsData = await transactionsResponse.json();
+        console.log("Transactions response:", transactionsData);
+        if (!Array.isArray(transactionsData)) {
+          throw new Error("Transactions data is not an array");
+        }
+        setTransactions(transactionsData);
 
         // Fetch inventory advice
         const advicePromises = productsData.map((product: Product) =>
-          fetch('http://localhost:8000/predictions/advice', {
+          fetch('http://localhost:8000/api/predictions/predictions/advice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               product_id: product.id,
               current_stock: product.current_stock
             })
-          }).then(res => res.json())
-        )
-        const adviceData = await Promise.all(advicePromises)
-        setInventoryAdvice(adviceData)
+          }).then(async (res) => {
+            if (!res.ok) {
+              throw new Error(`Failed to fetch advice for product ${product.id}: HTTP ${res.status}`);
+            }
+            const adviceData = await res.json();
+            console.log(`Advice for product ${product.id}:`, adviceData);
+            return adviceData;
+          })
+        );
+        const adviceData = await Promise.all(advicePromises);
+        setInventoryAdvice(adviceData);
 
-        setIsLoading(false)
-      } catch (error) {
-        console.error('Error fetching inventory data:', error)
-        setIsLoading(false)
+        setIsLoading(false);
+        setError(null);
+      } catch (error: any) {
+        console.error('Error fetching inventory data:', error);
+        setError(`Failed to load data: ${error.message}`);
+        setProducts([]);
+        setTransactions([]);
+        setInventoryAdvice([]);
+        setLowStockItems([]);
+        setStockAlerts([]);
+        setTotalInventoryValue(0);
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchInventoryData()
+    fetchInventoryData();
     // Refresh data every 5 minutes
-    const interval = setInterval(fetchInventoryData, 300000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(fetchInventoryData, 300000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Update time
   useEffect(() => {
@@ -464,44 +363,54 @@ export default function Dashboard() {
               <div className="absolute inset-6 border-4 border-b-blue-500 border-t-transparent border-r-transparent border-l-transparent rounded-full animate-spin-slower"></div>
               <div className="absolute inset-8 border-4 border-l-green-500 border-t-transparent border-r-transparent border-b-transparent rounded-full animate-spin"></div>
             </div>
-            <div className="mt-4 text-cyan-500 font-mono text-sm tracking-wider">SYSTEM INITIALIZING</div>
+            <div className="mt-4 text-cyan-500 font-mono text-sm tracking-wider">Loading...</div>
           </div>
         </div>
       )}
 
       <div className="container mx-auto p-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Error Display */}
+        {error && (
+          <div className="text-red-500 mb-4 text-center">{error}</div>
+        )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
           {/* Main dashboard content */}
-          <div className="lg:col-span-8 xl:col-span-9">
-            <div className="grid gap-6">
+          <div className="lg:col-span-9">
+            <div className="grid gap-3">
               {/* System overview with inventory metrics */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm overflow-hidden">
                 <CardHeader className="border-b border-slate-700/50 pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-slate-100 flex items-center">
+                    <CardTitle className="text-slate-200 flex items-center">
                       <Activity className="mr-2 h-5 w-5 text-cyan-500" />
                       Inventory Overview
                     </CardTitle>
                     <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="bg-slate-800/50 text-cyan-400 border-cyan-500/50 text-xs">
-                        <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 mr-1 animate-pulse"></div>
+                      <Badge variant="outline" className="bg-slate-800/50 text-cyan-400 border-cyan-500/50 text-xs rounded">
+                        <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 mr-1 animate-pulse"></div>
                         LIVE
                       </Badge>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-400"
+                        onClick={() => window.location.reload()}
+                      >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <MetricCard
                       title="Total Products"
                       value={products.length}
                       icon={Package}
-                      trend="stable"
+                      trend="up"
                       color="cyan"
                       detail={`${lowStockItems.length} items need attention`}
+                      type="count"
                     />
                     <MetricCard
                       title="Total Value"
@@ -510,78 +419,89 @@ export default function Dashboard() {
                       trend="up"
                       color="green"
                       detail={formatCurrency(totalInventoryValue)}
+                      type="currency"
                     />
                     <MetricCard
                       title="Stock Alerts"
                       value={stockAlerts.length}
                       icon={AlertTriangle}
-                      trend="up"
+                      trend="down"
                       color="red"
                       detail={`${stockAlerts.filter(a => a.urgency === 'HIGH').length} high priority`}
+                      type="count"
                     />
                   </div>
                 </CardContent>
               </Card>
 
               {/* Low Stock Items */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-slate-100 flex items-center text-base">
+                  <CardTitle className="text-slate-200 flex items-center text-base">
                     <AlertTriangle className="mr-2 h-5 w-5 text-amber-500" />
                     Low Stock Items
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {lowStockItems.map((product) => {
-                      const advice = inventoryAdvice.find(a => a.product_id === product.id)
-                      return (
-                        <div key={product.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                          <div>
-                            <h3 className="text-sm font-medium text-slate-200">{product.name}</h3>
-                            <p className="text-xs text-slate-400">SKU: {product.sku}</p>
+                    {lowStockItems.length === 0 ? (
+                      <p className="text-sm text-slate-400 text-center">No low stock items.</p>
+                    ) : (
+                      lowStockItems.map((product) => {
+                        const advice = inventoryAdvice.find(a => a.product_id === product.id)
+                        return (
+                          <div key={product.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                            <div>
+                              <h3 className="text-sm font-medium text-slate-200">{product.name}</h3>
+                              <p className="text-xs text-slate-400">SKU: {product.sku}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-slate-300">Current: {product.current_stock}</p>
+                              <p className="text-xs text-red-400">
+                                {advice?.advice || 'Checking stock levels...'}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm text-slate-300">Current: {product.current_stock}</p>
-                            <p className="text-xs text-red-400">
-                              {advice?.advice || 'Checking stock levels...'}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
               {/* Recent Transactions */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-slate-100 flex items-center text-base">
+                  <CardTitle className="text-slate-200 flex items-center text-base">
                     <Truck className="mr-2 h-5 w-5 text-blue-500" />
                     Recent Transactions
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {transactions.slice(0, 5).map((transaction) => (
-                      <div key={transaction.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                        <div>
-                          <h3 className="text-sm font-medium text-slate-200">
-                            {transaction.transaction_type === 'received' ? 'Stock Received' : 'Stock Shipped'}
-                          </h3>
-                          <p className="text-xs text-slate-400">
-                            {new Date(transaction.created_at).toLocaleDateString()}
-                          </p>
+                    {transactions.length === 0 ? (
+                      <p className="text-sm text-slate-400 text-center">No recent transactions.</p>
+                    ) : (
+                      transactions.slice(0, 5).map((transaction) => (
+                        <div key={transaction.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                          <div>
+                            <h3 className="text-sm font-medium text-slate-200">
+                              {transaction.transaction_type === 'received' ? 'Stock Received' : 
+                               transaction.transaction_type === 'shipped' ? 'Stock Shipped' : 'Stock Adjusted'}
+                            </h3>
+                            <p className="text-xs text-slate-400">
+                              {new Date(transaction.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-slate-300">Quantity: {transaction.quantity}</p>
+                            <p className="text-xs text-slate-400">
+                              New Stock: {transaction.new_stock}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm text-slate-300">Quantity: {transaction.quantity}</p>
-                          <p className="text-xs text-slate-400">
-                            New Stock: {transaction.new_stock}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -589,10 +509,10 @@ export default function Dashboard() {
           </div>
 
           {/* Right sidebar */}
-          <div className="lg:col-span-4 xl:col-span-3">
-            <div className="grid gap-6">
+          <div className="lg:col-span-3">
+            <div className="grid gap-3">
               {/* System time with inventory stats */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm overflow-hidden">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm overflow-hidden">
                 <CardContent className="p-0">
                   <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 border-b border-slate-700/50">
                     <div className="text-center">
@@ -617,9 +537,9 @@ export default function Dashboard() {
               </Card>
 
               {/* Quick actions */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-slate-100 text-base">Quick Actions</CardTitle>
+                  <CardTitle className="text-slate-200 text-base">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
@@ -632,32 +552,36 @@ export default function Dashboard() {
               </Card>
 
               {/* AI Inventory Advice */}
-              <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
+              <Card className="bg-slate-900/50 border-t border-slate-700/50 backdrop-blur-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-slate-100 text-base">AI Inventory Advice</CardTitle>
+                  <CardTitle className="text-slate-200 text-base">AI Inventory Advice</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {inventoryAdvice.slice(0, 3).map((advice) => {
-                      const product = products.find(p => p.id === advice.product_id)
-                      return (
-                        <div key={advice.product_id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                          <h3 className="text-sm font-medium text-slate-200">{product?.name}</h3>
-                          <p className="text-xs text-slate-400 mt-1">{advice.advice}</p>
-                          <div className="mt-2 flex items-center gap-2">
-                            <Badge variant={
-                              advice.urgency === 'HIGH' ? 'destructive' :
-                              advice.urgency === 'MEDIUM' ? 'secondary' : 'default'
-                            }>
-                              {advice.urgency}
-                            </Badge>
-                            <span className="text-xs text-slate-400">
-                              {advice.days_of_stock.toFixed(1)} days of stock
-                            </span>
+                    {inventoryAdvice.length === 0 ? (
+                      <p className="text-sm text-slate-400 text-center">No advice available.</p>
+                    ) : (
+                      inventoryAdvice.slice(0, 3).map((advice) => {
+                        const product = products.find(p => p.id === advice.product_id)
+                        return (
+                          <div key={advice.product_id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                            <h3 className="text-sm font-medium text-slate-200">{product?.name || "Unknown Product"}</h3>
+                            <p className="text-xs text-slate-400 mt-1">{advice.advice}</p>
+                            <div className="mt-2 flex items-center gap-2">
+                              <Badge variant={
+                                advice.urgency === 'HIGH' ? 'destructive' :
+                                advice.urgency === 'MEDIUM' ? 'secondary' : 'default'
+                              }>
+                                {advice.urgency}
+                              </Badge>
+                              <span className="text-xs text-slate-400">
+                                {advice.days_of_stock.toFixed(1)} days of stock
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -677,6 +601,7 @@ function MetricCard({
   trend,
   color,
   detail,
+  type,
 }: {
   title: string
   value: number
@@ -684,6 +609,7 @@ function MetricCard({
   trend: "up" | "down" | "stable"
   color: string
   detail: string
+  type: "count" | "percentage" | "currency"
 }) {
   const getColor = () => {
     switch (color) {
@@ -695,6 +621,8 @@ function MetricCard({
         return "from-blue-500 to-indigo-500 border-blue-500/30"
       case "purple":
         return "from-purple-500 to-pink-500 border-purple-500/30"
+      case "red":
+        return "from-red-500 to-rose-500 border-red-500/30"
       default:
         return "from-cyan-500 to-blue-500 border-cyan-500/30"
     }
@@ -713,6 +641,22 @@ function MetricCard({
     }
   }
 
+  const formatValue = () => {
+    switch (type) {
+      case "count":
+        return value.toString();
+      case "currency":
+        return new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD'
+        }).format(value);
+      case "percentage":
+        return `${value}%`;
+      default:
+        return value.toString();
+    }
+  }
+
   return (
     <div className={`bg-slate-800/50 rounded-lg border ${getColor()} p-4 relative overflow-hidden`}>
       <div className="flex items-center justify-between mb-2">
@@ -720,7 +664,7 @@ function MetricCard({
         <Icon className={`h-5 w-5 text-${color}-500`} />
       </div>
       <div className="text-2xl font-bold mb-1 bg-gradient-to-r bg-clip-text text-transparent from-slate-100 to-slate-300">
-        {value}%
+        {formatValue()}
       </div>
       <div className="text-xs text-slate-500">{detail}</div>
       <div className="absolute bottom-2 right-2 flex items-center">{getTrendIcon()}</div>

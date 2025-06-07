@@ -108,7 +108,7 @@ export default function TransactionsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/products/products")
+      const response = await fetch("http://localhost:8000/api/inventory/inventory/status")
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -130,12 +130,17 @@ export default function TransactionsPage() {
   }
 
   const handleAddTransaction = async () => {
+    if (!newTransaction.quantity || newTransaction.quantity <= 0) {
+      setError("Quantity must be greater than 0.")
+      return
+    }
     try {
       const endpoint = newTransaction.transaction_type === "received"
         ? "receive"
         : newTransaction.transaction_type === "shipped"
         ? "ship"
         : "adjust"
+      console.log("Posting to:", `http://localhost:8000/api/inventory/inventory/${endpoint}`, "Data:", newTransaction)
       const response = await fetch(`http://localhost:8000/api/inventory/inventory/${endpoint}`, {
         method: "POST",
         headers: {
@@ -151,6 +156,8 @@ export default function TransactionsPage() {
       })
 
       if (!response.ok) {
+        const errorData = await response.json()
+        console.error("API error response:", errorData)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 

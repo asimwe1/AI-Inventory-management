@@ -55,6 +55,8 @@ interface Product {
   updated_at: string
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -81,7 +83,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/products/products")
+      const response = await fetch(`${API_URL}/products/products`)
       const data = await response.json()
       setProducts(data)
       setIsLoading(false)

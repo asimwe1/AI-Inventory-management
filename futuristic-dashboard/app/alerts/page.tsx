@@ -55,6 +55,7 @@ export default function AlertsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [inventoryAdvice, setInventoryAdvice] = useState<InventoryAdvice[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortField, setSortField] = useState<keyof Product>("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -66,27 +67,44 @@ export default function AlertsPage() {
   const fetchData = async () => {
     try {
       // Fetch products
-      const productsResponse = await fetch("http://localhost:8000/products")
+      const productsResponse = await fetch("http://localhost:8000/api/products/products/")
+      if (!productsResponse.ok) {
+        throw new Error(`Failed to fetch products: HTTP ${productsResponse.status}`)
+      }
       const productsData = await productsResponse.json()
+      console.log("Products response:", productsData)
+      if (!Array.isArray(productsData)) {
+        throw new Error("Products data is not an array")
+      }
       setProducts(productsData)
 
       // Fetch inventory advice
       const advicePromises = productsData.map((product: Product) =>
-        fetch("http://localhost:8000/predictions/advice", {
+        fetch("http://localhost:8000/api/predictions/predictions/advice", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             product_id: product.id,
             current_stock: product.current_stock,
           }),
-        }).then((res) => res.json())
+        }).then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`Failed to fetch advice for product ${product.id}: HTTP ${res.status}`)
+          }
+          const adviceData = await res.json()
+          console.log(`Advice for product ${product.id}:`, adviceData)
+          return adviceData
+        })
       )
       const adviceData = await Promise.all(advicePromises)
       setInventoryAdvice(adviceData)
-
       setIsLoading(false)
-    } catch (error) {
+      setError(null)
+    } catch (error: any) {
       console.error("Error fetching data:", error)
+      setError(`Failed to load data: ${error.message}`)
+      setProducts([])
+      setInventoryAdvice([])
       setIsLoading(false)
     }
   }
@@ -150,17 +168,21 @@ export default function AlertsPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="grid gap-6">
+        {/* Error Display */}
+        {error && (
+          <div className="text-red-500 mb-4">{error}</div>
+        )}
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
+              <CardTitle className="text-sm text-slate-500 font-medium flex items-center">
                 <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
                 High Priority Alerts
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl text-cyan-500 font-bold">
                 {
                   inventoryAdvice.filter((advice) => advice.urgency === "HIGH")
                     .length
@@ -174,13 +196,13 @@ export default function AlertsPage() {
 
           <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
+              <CardTitle className="text-sm text-slate-500 font-medium flex items-center">
                 <Clock className="mr-2 h-4 w-4 text-amber-500" />
                 Medium Priority
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl text-cyan-500 font-bold">
                 {
                   inventoryAdvice.filter((advice) => advice.urgency === "MEDIUM")
                     .length
@@ -194,13 +216,13 @@ export default function AlertsPage() {
 
           <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center">
+              <CardTitle className="text-sm text-slate-500 font-medium flex items-center">
                 <TrendingUp className="mr-2 h-4 w-4 text-green-500" />
                 Low Priority
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl text-cyan-500 font-bold">
                 {
                   inventoryAdvice.filter((advice) => advice.urgency === "LOW")
                     .length
@@ -218,7 +240,7 @@ export default function AlertsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl font-bold flex items-center">
+                <CardTitle className="text-2xl text-cyan-500 font-bold flex items-center">
                   <AlertTriangle className="mr-2 h-6 w-6 text-amber-500" />
                   Low Stock Items
                 </CardTitle>
@@ -261,63 +283,77 @@ export default function AlertsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => {
-                    const advice = inventoryAdvice.find(
-                      (a) => a.product_id === product.id
-                    )
-                    const stockLevel = getStockLevelPercentage(product)
-                    return (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Package className="mr-2 h-4 w-4 text-slate-400" />
-                            {product.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>{product.sku}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {product.current_stock}
-                            <span className="text-xs text-slate-400 ml-1">
-                              / {product.max_stock_level}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-full">
-                            <Progress
-                              value={stockLevel}
-                              className="h-2 bg-slate-700"
-                            />
-                            <div className="text-xs text-slate-400 mt-1">
-                              {stockLevel.toFixed(1)}% of max stock
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center">
+                        Loading...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredProducts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center">
+                        No low stock items found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredProducts.map((product) => {
+                      const advice = inventoryAdvice.find(
+                        (a) => a.product_id === product.id
+                      )
+                      const stockLevel = getStockLevelPercentage(product)
+                      return (
+                        <TableRow key={product.id}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Package className="mr-2 h-4 w-4 text-slate-400" />
+                              {product.name}
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <Cpu className="mr-2 h-4 w-4 text-cyan-500" />
-                            <span className="text-sm">
-                              {advice?.advice || "Analyzing..."}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              advice?.urgency === "HIGH"
-                                ? "destructive"
-                                : advice?.urgency === "MEDIUM"
-                                ? "secondary"
-                                : "default"
-                            }
-                          >
-                            {advice?.urgency || "Analyzing"}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
+                          </TableCell>
+                          <TableCell>{product.sku}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              {product.current_stock}
+                              <span className="text-xs text-slate-400 ml-1">
+                                / {product.max_stock_level}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="w-full">
+                              <Progress
+                                value={stockLevel}
+                                className="h-2 bg-slate-700"
+                              />
+                              <div className="text-xs text-slate-400 mt-1">
+                                {stockLevel.toFixed(1)}% of max stock
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Cpu className="mr-2 h-4 w-4 text-cyan-500" />
+                              <span className="text-sm">
+                                {advice?.advice || "Analyzing..."}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                advice?.urgency === "HIGH"
+                                  ? "destructive"
+                                  : advice?.urgency === "MEDIUM"
+                                  ? "secondary"
+                                  : "default"
+                              }
+                            >
+                              {advice?.urgency || "Analyzing"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -327,7 +363,7 @@ export default function AlertsPage() {
         {/* AI Recommendations */}
         <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center">
+            <CardTitle className="text-2xl text-cyan-500 font-bold flex items-center">
               <Cpu className="mr-2 h-6 w-6 text-cyan-500" />
               AI Inventory Recommendations
             </CardTitle>
@@ -342,11 +378,11 @@ export default function AlertsPage() {
                 return (
                   <div
                     key={advice.product_id}
-                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50"
+                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-600"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-slate-200">
-                        {product?.name}
+                        {product?.name || "Unknown Product"}
                       </h3>
                       <Badge
                         variant={
@@ -386,4 +422,4 @@ export default function AlertsPage() {
       </div>
     </div>
   )
-} 
+}

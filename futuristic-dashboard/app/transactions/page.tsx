@@ -70,6 +70,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [sortField, setSortField] = useState<keyof Transaction>("created_at")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
@@ -79,6 +80,7 @@ export default function TransactionsPage() {
     transaction_type: "received",
     quantity: 0,
     notes: "",
+    reference_number: "",
   })
 
   useEffect(() => {
@@ -88,23 +90,33 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/inventory/transactions")
+      const response = await fetch("http://localhost:8000/api/inventory/inventory/transactions")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
-      setTransactions(data)
+      setTransactions(Array.isArray(data) ? data : [])
       setIsLoading(false)
+      setError(null)
     } catch (error) {
       console.error("Error fetching transactions:", error)
+      setTransactions([])
       setIsLoading(false)
+      setError("Failed to fetch transactions. Please try again.")
     }
   }
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/products")
+      const response = await fetch("http://localhost:8000/api/inventory/inventory/status")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const data = await response.json()
-      setProducts(data)
+      setProducts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error fetching products:", error)
+      setProducts([])
     }
   }
 
@@ -118,27 +130,49 @@ export default function TransactionsPage() {
   }
 
   const handleAddTransaction = async () => {
+    if (!newTransaction.quantity || newTransaction.quantity <= 0) {
+      setError("Quantity must be greater than 0.")
+      return
+    }
     try {
-      const response = await fetch("http://localhost:8000/inventory/transactions", {
+      const endpoint = newTransaction.transaction_type === "received"
+        ? "receive"
+        : newTransaction.transaction_type === "shipped"
+        ? "ship"
+        : "adjust"
+      console.log("Posting to:", `http://localhost:8000/api/inventory/inventory/${endpoint}`, "Data:", newTransaction)
+      const response = await fetch(`http://localhost:8000/api/inventory/inventory/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(newTransaction),
+        body: JSON.stringify({
+          product_id: newTransaction.product_id,
+          transaction_type: newTransaction.transaction_type,
+          quantity: newTransaction.quantity,
+          reference_number: newTransaction.reference_number || null,
+          notes: newTransaction.notes || null,
+        }),
       })
 
-      if (response.ok) {
-        await fetchTransactions()
-        setIsAddDialogOpen(false)
-        setNewTransaction({
-          product_id: "",
-          transaction_type: "received",
-          quantity: 0,
-          notes: "",
-        })
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("API error response:", errorData)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+
+      await fetchTransactions()
+      setIsAddDialogOpen(false)
+      setNewTransaction({
+        product_id: "",
+        transaction_type: "received",
+        quantity: 0,
+        notes: "",
+        reference_number: "",
+      })
     } catch (error) {
       console.error("Error adding transaction:", error)
+      setError("Failed to add transaction. Please try again.")
     }
   }
 
@@ -182,8 +216,8 @@ export default function TransactionsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold flex items-center">
-                <Truck className="mr-2 h-6 w-6 text-cyan-500" />
+              <CardTitle className="text-2xl text-cyan-500 font-bold flex items-center">
+                <Truck className="mr-2 h-6 w-6" />
                 Transactions
               </CardTitle>
               <CardDescription>
@@ -255,7 +289,20 @@ export default function TransactionsPage() {
                       onChange={(e) =>
                         setNewTransaction({
                           ...newTransaction,
-                          quantity: parseInt(e.target.value),
+                          quantity: parseInt(e.target.value) || 0,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reference_number">Reference Number</Label>
+                    <Input
+                      id="reference_number"
+                      value={newTransaction.reference_number || ""}
+                      onChange={(e) =>
+                        setNewTransaction({
+                          ...newTransaction,
+                          reference_number: e.target.value,
                         })
                       }
                     />
@@ -288,6 +335,9 @@ export default function TransactionsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="text-red-500 mb-4">{error}</div>
+          )}
           <div className="flex items-center justify-between mb-4">
             <div className="relative w-72">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
@@ -329,50 +379,64 @@ export default function TransactionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTransactions.map((transaction) => {
-                  const product = products.find(
-                    (p) => p.id === transaction.product_id
-                  )
-                  return (
-                    <TableRow key={transaction.id}>
-                      <TableCell>
-                        {new Date(transaction.created_at).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Package className="mr-2 h-4 w-4 text-slate-400" />
-                          {product?.name}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          {getTransactionTypeIcon(transaction.transaction_type)}
-                          <span className="ml-2">
-                            {transaction.transaction_type.charAt(0).toUpperCase() +
-                              transaction.transaction_type.slice(1)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            transaction.transaction_type === "received"
-                              ? "default"
-                              : "destructive"
-                          }
-                        >
-                          {transaction.transaction_type === "received" ? "+" : "-"}
-                          {transaction.quantity}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{transaction.previous_stock}</TableCell>
-                      <TableCell>{transaction.new_stock}</TableCell>
-                      <TableCell>
-                        {transaction.reference_number || "-"}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredTransactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      No transactions found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredTransactions.map((transaction) => {
+                    const product = products.find(
+                      (p) => p.id === transaction.product_id
+                    )
+                    return (
+                      <TableRow key={transaction.id}>
+                        <TableCell>
+                          {new Date(transaction.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Package className="mr-2 h-4 w-4 text-slate-400" />
+                            {product?.name || "Unknown Product"}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {getTransactionTypeIcon(transaction.transaction_type)}
+                            <span className="ml-2">
+                              {transaction.transaction_type.charAt(0).toUpperCase() +
+                                transaction.transaction_type.slice(1)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              transaction.transaction_type === "received"
+                                ? "default"
+                                : "destructive"
+                            }
+                          >
+                            {transaction.transaction_type === "received" ? "+" : "-"}
+                            {transaction.quantity}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{transaction.previous_stock}</TableCell>
+                        <TableCell>{transaction.new_stock}</TableCell>
+                        <TableCell>
+                          {transaction.reference_number || "-"}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })
+                )}
               </TableBody>
             </Table>
           </div>
@@ -380,4 +444,4 @@ export default function TransactionsPage() {
       </Card>
     </div>
   )
-} 
+}

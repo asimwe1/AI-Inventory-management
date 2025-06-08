@@ -51,12 +51,12 @@ class InventoryTransactionResponse(InventoryTransactionBase):
 @router.post("/receive", response_model=InventoryTransactionResponse)
 async def receive_stock(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
     try:
-        # Get product
         product = db.query(Product).filter(Product.id == transaction.product_id).first()
         if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-
-        # Create transaction
+            raise HTTPException(status_code=404, detail=f"Product not found: {transaction.product_id}")
+        if transaction.transaction_type != TransactionType.RECEIVED:
+            raise HTTPException(status_code=400, detail="Invalid transaction type for receive endpoint")
+        
         previous_stock = product.current_stock
         new_stock = previous_stock + transaction.quantity
         
@@ -69,36 +69,66 @@ async def receive_stock(transaction: InventoryTransactionCreate, db: Session = D
             reference_number=transaction.reference_number,
             notes=transaction.notes
         )
-
-        # Update product stock
         product.current_stock = new_stock
-
         db.add(db_transaction)
         db.commit()
         db.refresh(db_transaction)
         return db_transaction
-
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
-        logger.error(f"Error receiving stock: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error receiving stock: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process transaction: {str(e)}")
 
+@router.post("/adjust", response_model=InventoryTransactionResponse)
+async def adjust_stock(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
+    try:
+        product = db.query(Product).filter(Product.id == transaction.product_id).first()
+        if not product:
+            raise HTTPException(status_code=404, detail=f"Product not found: {transaction.product_id}")
+        if transaction.transaction_type != TransactionType.ADJUSTED:
+            raise HTTPException(status_code=400, detail="Invalid transaction type for adjust endpoint")
+        
+        previous_stock = product.current_stock
+        new_stock = previous_stock + transaction.quantity if transaction.quantity > 0 else previous_stock - abs(transaction.quantity)
+        
+        db_transaction = InventoryTransaction(
+            product_id=transaction.product_id,
+            transaction_type=TransactionType.ADJUSTED,
+            quantity=abs(transaction.quantity),
+            previous_stock=previous_stock,
+            new_stock=new_stock,
+            reference_number=transaction.reference_number,
+            notes=transaction.notes
+        )
+        product.current_stock = new_stock
+        db.add(db_transaction)
+        db.commit()
+        db.refresh(db_transaction)
+        return db_transaction
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error adjusting stock: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process transaction: {str(e)}")
+    
+    
 @router.post("/ship", response_model=InventoryTransactionResponse)
 async def ship_stock(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
     try:
-        # Get product
         product = db.query(Product).filter(Product.id == transaction.product_id).first()
         if not product:
-            raise HTTPException(status_code=404, detail="Product not found")
-
-        # Check if enough stock
+            raise HTTPException(status_code=404, detail=f"Product not found: {transaction.product_id}")
+        if transaction.transaction_type != TransactionType.SHIPPED:
+            raise HTTPException(status_code=400, detail="Invalid transaction type for ship endpoint")
         if product.current_stock < transaction.quantity:
             raise HTTPException(
                 status_code=400,
                 detail=f"Insufficient stock. Current stock: {product.current_stock}"
             )
 
-        # Create transaction
         previous_stock = product.current_stock
         new_stock = previous_stock - transaction.quantity
         
@@ -112,18 +142,17 @@ async def ship_stock(transaction: InventoryTransactionCreate, db: Session = Depe
             notes=transaction.notes
         )
 
-        # Update product stock
         product.current_stock = new_stock
-
         db.add(db_transaction)
         db.commit()
         db.refresh(db_transaction)
         return db_transaction
-
+    except HTTPException:
+        raise  # Re-raise HTTPException to return 400/404 as intended
     except Exception as e:
         db.rollback()
-        logger.error(f"Error shipping stock: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error shipping stock: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process transaction: {str(e)}")
 
 @router.get("/transactions/{product_id}", response_model=List[InventoryTransactionResponse])
 async def get_product_transactions(
@@ -135,6 +164,21 @@ async def get_product_transactions(
     transactions = (
         db.query(InventoryTransaction)
         .filter(InventoryTransaction.product_id == product_id)
+        .order_by(InventoryTransaction.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return transactions
+
+@router.get("/transactions", response_model=List[InventoryTransactionResponse])
+async def get_all_transactions(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    transactions = (
+        db.query(InventoryTransaction)
         .order_by(InventoryTransaction.created_at.desc())
         .offset(skip)
         .limit(limit)
@@ -154,4 +198,37 @@ async def get_inventory_status(
         .limit(limit)
         .all()
     )
-    return products 
+    return products
+
+@router.get("/inventory/transactions", response_model=List[InventoryTransactionResponse])
+async def get_all_transactions_alt(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Get all inventory transactions (alternative endpoint)"""
+    return await get_all_transactions(skip, limit, db)
+
+@router.get("/inventory/status", response_model=List[ProductResponse])
+async def get_inventory_status_alt(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Get inventory status (alternative endpoint)"""
+    return await get_inventory_status(skip, limit, db)
+
+@router.post("/inventory/receive", response_model=InventoryTransactionResponse)
+async def receive_stock_alt(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
+    """Receive stock (alternative endpoint)"""
+    return await receive_stock(transaction, db)
+
+@router.post("/inventory/ship", response_model=InventoryTransactionResponse)
+async def ship_stock_alt(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
+    """Ship stock (alternative endpoint)"""
+    return await ship_stock(transaction, db)
+
+@router.post("/inventory/adjust", response_model=InventoryTransactionResponse)
+async def adjust_stock_alt(transaction: InventoryTransactionCreate, db: Session = Depends(get_db)):
+    """Adjust stock (alternative endpoint)"""
+    return await adjust_stock(transaction, db)

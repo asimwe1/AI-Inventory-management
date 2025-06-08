@@ -30,7 +30,7 @@ export default function SettingsPage() {
       <div className="grid gap-6">
         <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center text-cyan-500 gap-2">
               <User className="h-6 w-6 text-cyan-500" /> User Profile
             </CardTitle>
           </CardHeader>
@@ -49,7 +49,7 @@ export default function SettingsPage() {
 
         <Card className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Settings</CardTitle>
+            <CardTitle className="text-cyan-500">Settings</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

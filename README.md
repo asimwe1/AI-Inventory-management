@@ -52,14 +52,20 @@ AI_driven_Inventory/
 
 4. Start the backend server:
    ```bash
-   cd backend
+   cd backend/app
    uvicorn main:app --reload
    ```
 
-5. Start the frontend development server:
+5. - Start the frontend development server:
    ```bash
-   cd frontend
-   npm install
+   cd futuristic-dashboard
+   npm run dev
+   ```
+
+   - Start the frontend Production server:
+   ```bash
+   cd futuristic-dashboard
+   npm run build
    npm start
    ```
 

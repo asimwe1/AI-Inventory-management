@@ -1,51 +1,51 @@
 product_id,product_name,category,brand,base_price
-PRD001,Zedi Home Goods Item 1,Home Goods,Zedi,405.51
-PRD002,Standard Food Item 2,Food,Standard,841.11
-PRD003,Basic Home Goods Item 3,Home Goods,Basic,176.46
-PRD004,Standard Electronics Item 4,Electronics,Standard,927.01
-PRD005,Zedi Home Goods Item 5,Home Goods,Zedi,436.13
-PRD006,Elite Food Item 6,Food,Elite,167.59
-PRD007,Zedi Electronics Item 7,Electronics,Zedi,793.44
-PRD008,Premium Food Item 8,Food,Premium,919.0
-PRD009,Premium Food Item 9,Food,Premium,712.25
-PRD010,Zedi Beauty Item 10,Beauty,Zedi,522.99
-PRD011,Zedi Food Item 11,Food,Zedi,412.22
-PRD012,Basic Beauty Item 12,Beauty,Basic,629.55
-PRD013,Basic Food Item 13,Food,Basic,791.6
-PRD014,Basic Electronics Item 14,Electronics,Basic,569.44
-PRD015,Standard Beauty Item 15,Beauty,Standard,311.82
-PRD016,Standard Clothing Item 16,Clothing,Standard,678.65
-PRD017,Elite Electronics Item 17,Electronics,Elite,847.92
-PRD018,Zedi Beauty Item 18,Beauty,Zedi,622.65
-PRD019,Premium Electronics Item 19,Electronics,Premium,453.81
-PRD020,Basic Clothing Item 20,Clothing,Basic,478.68
-PRD021,Premium Beauty Item 21,Beauty,Premium,757.66
-PRD022,Premium Home Goods Item 22,Home Goods,Premium,96.29
-PRD023,Standard Home Goods Item 23,Home Goods,Standard,553.1
-PRD024,Standard Food Item 24,Food,Standard,65.55
-PRD025,Elite Beauty Item 25,Beauty,Elite,968.99
-PRD026,Premium Home Goods Item 26,Home Goods,Premium,423.73
-PRD027,Elite Beauty Item 27,Beauty,Elite,950.59
-PRD028,Basic Electronics Item 28,Electronics,Basic,385.42
-PRD029,Basic Clothing Item 29,Clothing,Basic,559.08
-PRD030,Zedi Electronics Item 30,Electronics,Zedi,959.46
-PRD031,Standard Home Goods Item 31,Home Goods,Standard,736.55
-PRD032,Zedi Clothing Item 32,Clothing,Zedi,20.72
-PRD033,Premium Home Goods Item 33,Home Goods,Premium,828.37
-PRD034,Standard Home Goods Item 34,Home Goods,Standard,23.92
-PRD035,Standard Electronics Item 35,Electronics,Standard,799.14
-PRD036,Zedi Clothing Item 36,Clothing,Zedi,512.07
-PRD037,Elite Beauty Item 37,Beauty,Elite,109.19
-PRD038,Premium Food Item 38,Food,Premium,565.16
-PRD039,Standard Beauty Item 39,Beauty,Standard,343.02
-PRD040,Zedi Electronics Item 40,Electronics,Zedi,667.73
-PRD041,Standard Electronics Item 41,Electronics,Standard,188.51
-PRD042,Zedi Home Goods Item 42,Home Goods,Zedi,644.12
-PRD043,Standard Beauty Item 43,Beauty,Standard,509.77
-PRD044,Premium Home Goods Item 44,Home Goods,Premium,913.87
-PRD045,Basic Home Goods Item 45,Home Goods,Basic,538.38
-PRD046,Elite Home Goods Item 46,Home Goods,Elite,134.51
-PRD047,Zedi Food Item 47,Food,Zedi,301.42
-PRD048,Zedi Food Item 48,Food,Zedi,516.72
-PRD049,Elite Home Goods Item 49,Home Goods,Elite,405.94
-PRD050,Zedi Electronics Item 50,Electronics,Zedi,348.23
+PRD001,Premium Electronics Item 1,Electronics,Premium,561.98
+PRD002,Zedi Beauty Item 2,Beauty,Zedi,545.32
+PRD003,Zedi Home Goods Item 3,Home Goods,Zedi,952.84
+PRD004,Basic Home Goods Item 4,Home Goods,Basic,268.96
+PRD005,Premium Home Goods Item 5,Home Goods,Premium,517.19
+PRD006,Standard Clothing Item 6,Clothing,Standard,114.15
+PRD007,Elite Home Goods Item 7,Home Goods,Elite,227.43
+PRD008,Premium Home Goods Item 8,Home Goods,Premium,185.45
+PRD009,Basic Food Item 9,Food,Basic,866.65
+PRD010,Zedi Home Goods Item 10,Home Goods,Zedi,717.95
+PRD011,Elite Beauty Item 11,Beauty,Elite,109.0
+PRD012,Elite Clothing Item 12,Clothing,Elite,90.6
+PRD013,Elite Clothing Item 13,Clothing,Elite,889.71
+PRD014,Elite Electronics Item 14,Electronics,Elite,618.9
+PRD015,Premium Home Goods Item 15,Home Goods,Premium,980.08
+PRD016,Elite Home Goods Item 16,Home Goods,Elite,788.86
+PRD017,Basic Electronics Item 17,Electronics,Basic,64.85
+PRD018,Zedi Clothing Item 18,Clothing,Zedi,520.61
+PRD019,Elite Home Goods Item 19,Home Goods,Elite,355.78
+PRD020,Premium Electronics Item 20,Electronics,Premium,719.91
+PRD021,Basic Electronics Item 21,Electronics,Basic,931.26
+PRD022,Basic Electronics Item 22,Electronics,Basic,399.57
+PRD023,Basic Home Goods Item 23,Home Goods,Basic,358.71
+PRD024,Premium Beauty Item 24,Beauty,Premium,847.54
+PRD025,Elite Electronics Item 25,Electronics,Elite,870.44
+PRD026,Basic Home Goods Item 26,Home Goods,Basic,677.84
+PRD027,Standard Home Goods Item 27,Home Goods,Standard,331.25
+PRD028,Basic Clothing Item 28,Clothing,Basic,506.25
+PRD029,Premium Beauty Item 29,Beauty,Premium,206.74
+PRD030,Zedi Electronics Item 30,Electronics,Zedi,959.94
+PRD031,Zedi Clothing Item 31,Clothing,Zedi,30.21
+PRD032,Premium Food Item 32,Food,Premium,414.8
+PRD033,Basic Beauty Item 33,Beauty,Basic,703.34
+PRD034,Zedi Electronics Item 34,Electronics,Zedi,229.82
+PRD035,Basic Clothing Item 35,Clothing,Basic,689.79
+PRD036,Standard Clothing Item 36,Clothing,Standard,743.57
+PRD037,Elite Clothing Item 37,Clothing,Elite,280.93
+PRD038,Basic Food Item 38,Food,Basic,277.88
+PRD039,Premium Beauty Item 39,Beauty,Premium,889.9
+PRD040,Zedi Food Item 40,Food,Zedi,621.19
+PRD041,Elite Electronics Item 41,Electronics,Elite,820.96
+PRD042,Premium Home Goods Item 42,Home Goods,Premium,738.21
+PRD043,Standard Home Goods Item 43,Home Goods,Standard,844.17
+PRD044,Premium Home Goods Item 44,Home Goods,Premium,585.7
+PRD045,Basic Home Goods Item 45,Home Goods,Basic,78.32
+PRD046,Zedi Home Goods Item 46,Home Goods,Zedi,135.91
+PRD047,Basic Food Item 47,Food,Basic,932.34
+PRD048,Elite Clothing Item 48,Clothing,Elite,797.34
+PRD049,Elite Home Goods Item 49,Home Goods,Elite,897.11
+PRD050,Standard Home Goods Item 50,Home Goods,Standard,443.56

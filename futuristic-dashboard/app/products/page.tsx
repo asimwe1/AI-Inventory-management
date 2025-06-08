@@ -55,6 +55,8 @@ interface Product {
   updated_at: string
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -81,7 +83,7 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/products")
+      const response = await fetch(`${API_URL}/products/products`)
       const data = await response.json()
       setProducts(data)
       setIsLoading(false)
@@ -102,7 +104,7 @@ export default function ProductsPage() {
 
   const handleAddProduct = async () => {
     try {
-      const response = await fetch("http://localhost:8000/products", {
+      const response = await fetch("http://localhost:8000/api/products/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,8 +133,7 @@ export default function ProductsPage() {
     }
   }
 
-  const filteredProducts = products
-    .filter((product) =>
+  const filteredProducts = products.filter((product) =>
       Object.values(product).some((value) =>
         value?.toString().toLowerCase().includes(searchQuery.toLowerCase())
       )
@@ -158,8 +159,8 @@ export default function ProductsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl font-bold flex items-center">
-                <Package className="mr-2 h-6 w-6 text-cyan-500" />
+              <CardTitle className="text-2xl text-cyan-500 font-bold flex items-center">
+                <Package className="mr-2 h-6 w-6" />
                 Products
               </CardTitle>
               <CardDescription>
@@ -173,19 +174,20 @@ export default function ProductsPage() {
                   Add Product
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-slate-900 border-slate-700">
+              <DialogContent className="bg-slate-900 text-white border-slate-700">
                 <DialogHeader>
-                  <DialogTitle>Add New Product</DialogTitle>
-                  <DialogDescription>
+                  <DialogTitle className="text-white">Add New Product</DialogTitle>
+                  <DialogDescription className="text-slate-300">
                     Enter the product details below
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name" className="text-white">Name</Label>
                       <Input
                         id="name"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.name}
                         onChange={(e) =>
                           setNewProduct({ ...newProduct, name: e.target.value })
@@ -193,9 +195,10 @@ export default function ProductsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="sku">SKU</Label>
+                      <Label htmlFor="sku" className="text-white">SKU</Label>
                       <Input
                         id="sku"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.sku}
                         onChange={(e) =>
                           setNewProduct({ ...newProduct, sku: e.target.value })
@@ -204,9 +207,10 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="text-white">Description</Label>
                     <Input
                       id="description"
+                      className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                       value={newProduct.description || ""}
                       onChange={(e) =>
                         setNewProduct({
@@ -218,9 +222,10 @@ export default function ProductsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="category" className="text-white">Category</Label>
                       <Input
                         id="category"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.category}
                         onChange={(e) =>
                           setNewProduct({
@@ -231,15 +236,16 @@ export default function ProductsPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="unit_price">Unit Price</Label>
+                      <Label htmlFor="unit_price" className="text-white">Unit Price</Label>
                       <Input
                         id="unit_price"
                         type="number"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.unit_price}
                         onChange={(e) =>
                           setNewProduct({
                             ...newProduct,
-                            unit_price: parseFloat(e.target.value),
+                            unit_price: parseFloat(e.target.value) || 0,
                           })
                         }
                       />
@@ -247,29 +253,31 @@ export default function ProductsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="min_stock">Min Stock Level</Label>
+                      <Label htmlFor="min_stock" className="text-white">Min Stock Level</Label>
                       <Input
                         id="min_stock"
                         type="number"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.min_stock_level}
                         onChange={(e) =>
                           setNewProduct({
                             ...newProduct,
-                            min_stock_level: parseInt(e.target.value),
+                            min_stock_level: parseInt(e.target.value) || 0,
                           })
                         }
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="max_stock">Max Stock Level</Label>
+                      <Label htmlFor="max_stock" className="text-white">Max Stock Level</Label>
                       <Input
                         id="max_stock"
                         type="number"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.max_stock_level}
                         onChange={(e) =>
                           setNewProduct({
                             ...newProduct,
-                            max_stock_level: parseInt(e.target.value),
+                            max_stock_level: parseInt(e.target.value) || 0,
                           })
                         }
                       />
@@ -277,29 +285,31 @@ export default function ProductsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="lead_time">Lead Time (Days)</Label>
+                      <Label htmlFor="lead_time" className="text-white">Lead Time (Days)</Label>
                       <Input
                         id="lead_time"
                         type="number"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.lead_time_days}
                         onChange={(e) =>
                           setNewProduct({
                             ...newProduct,
-                            lead_time_days: parseInt(e.target.value),
+                            lead_time_days: parseInt(e.target.value) || 0,
                           })
                         }
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="reorder_point">Reorder Point</Label>
+                      <Label htmlFor="reorder_point" className="text-white">Reorder Point</Label>
                       <Input
                         id="reorder_point"
                         type="number"
+                        className="bg-slate-800 text-white border-slate-600 focus:ring-slate-500"
                         value={newProduct.reorder_point || 0}
                         onChange={(e) =>
                           setNewProduct({
                             ...newProduct,
-                            reorder_point: parseInt(e.target.value),
+                            reorder_point: parseInt(e.target.value) || 0,
                           })
                         }
                       />
@@ -309,11 +319,17 @@ export default function ProductsPage() {
                 <DialogFooter>
                   <Button
                     variant="outline"
+                    className="bg-slate-800 text-white border-slate-600 hover:bg-slate-700"
                     onClick={() => setIsAddDialogOpen(false)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleAddProduct}>Add Product</Button>
+                  <Button
+                    className="bg-blue-600 text-white hover:bg-blue-700"
+                    onClick={handleAddProduct}
+                  >
+                    Add Product
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -384,7 +400,7 @@ export default function ProductsPage() {
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="text-slate-500">
                 {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
@@ -408,13 +424,13 @@ export default function ProductsPage() {
                       <Badge
                         variant={
                           product.current_stock <=
-                          (product.reorder_point || product.min_stock_level)
+                            (product.reorder_point || product.min_stock_level)
                             ? "destructive"
                             : "default"
                         }
                       >
                         {product.current_stock <=
-                        (product.reorder_point || product.min_stock_level)
+                          (product.reorder_point || product.min_stock_level)
                           ? "Low Stock"
                           : "In Stock"}
                       </Badge>

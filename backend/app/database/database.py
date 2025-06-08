@@ -10,40 +10,15 @@ from .models import Base  # Import Base from models
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env file only if not in production
-if os.getenv("ENVIRONMENT") != "production":
-    load_dotenv()
-
-# Debug: Print all environment variables (without sensitive data)
-logger.info("Environment variables loaded")
-for key in os.environ:
-    if 'DATABASE' in key:
-        value = os.environ[key]
-        if '@' in value:
-            # Mask sensitive parts of the URL
-            parts = value.split('@')
-            masked_value = f"***:***@{parts[1]}"
-        else:
-            masked_value = "***"
-        logger.info(f"Found environment variable: {key}={masked_value}")
+# Load environment variables
+load_dotenv()
 
 # Get database URL from environment variable
-DATABASE_URL = os.environ.get("DATABASE_URL")
-if not DATABASE_URL:
-    logger.error("DATABASE_URL environment variable is not set")
-    raise ValueError("DATABASE_URL environment variable is not set")
-
-# Handle Render's database URL format
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    logger.info("Converted postgres:// to postgresql:// format")
-
-# Validate database URL format
-if not DATABASE_URL.startswith("postgresql://"):
-    logger.error(f"Invalid DATABASE_URL format: {DATABASE_URL}")
-    raise ValueError("DATABASE_URL must start with postgresql://")
-
-SQLALCHEMY_DATABASE_URL = DATABASE_URL
+# Default to PostgreSQL connection if not set
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://javauser:password@localhost:5432/inventory"
+)
 
 # Configure PostgreSQL connection pool
 POSTGRES_POOL_SIZE = int(os.getenv("POSTGRES_POOL_SIZE", "5"))
@@ -62,13 +37,7 @@ def get_engine():
             pool_pre_ping=True,  # Enable connection health checks
             echo=True  # Enable SQL query logging
         )
-        # Log connection info without sensitive data
-        db_url_parts = SQLALCHEMY_DATABASE_URL.split('@')
-        if len(db_url_parts) > 1:
-            safe_url = f"postgresql://***:***@{db_url_parts[1]}"
-        else:
-            safe_url = "postgresql://***:***@***"
-        logger.info(f"Connecting to PostgreSQL database at {safe_url}")
+        logger.info(f"Connecting to PostgreSQL database at {SQLALCHEMY_DATABASE_URL}")
         return engine
     except Exception as e:
         logger.error(f"Error creating database engine: {e}")

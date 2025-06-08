@@ -6,7 +6,6 @@ import logging
 import traceback
 from app.database.database import init_db, check_db_connection
 from app.api import products_router, inventory_router, predictions_router
-import os
 
 # Set up logging
 logging.basicConfig(
@@ -44,13 +43,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8950",
-        "http://127.0.0.1:8950",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://*.onrender.com"  # Allow Render domains
-    ],
+    allow_origins=["http://localhost:8950", "http://127.0.0.1:8950", "http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"],
     allow_headers=["*"],
@@ -102,9 +95,7 @@ async def startup_event():
     try:
         # Check database connection first
         if not check_db_connection():
-            logger.error("Database connection failed. Please check your DATABASE_URL environment variable.")
-            logger.error(f"Current DATABASE_URL: {os.getenv('DATABASE_URL', 'Not set')}")
-            raise Exception("Failed to connect to database. Check logs for details.")
+            raise Exception("Failed to connect to database")
             
         # Initialize database
         init_db()

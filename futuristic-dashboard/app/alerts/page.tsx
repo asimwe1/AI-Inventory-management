@@ -64,10 +64,12 @@ export default function AlertsPage() {
     fetchData()
   }, [])
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const fetchData = async () => {
     try {
       // Fetch products
-      const productsResponse = await fetch("http://localhost:8000/api/products/products/")
+      const productsResponse = await fetch(`${API_URL}/products/products/`)
       if (!productsResponse.ok) {
         throw new Error(`Failed to fetch products: HTTP ${productsResponse.status}`)
       }
@@ -80,7 +82,7 @@ export default function AlertsPage() {
 
       // Fetch inventory advice
       const advicePromises = productsData.map((product: Product) =>
-        fetch("http://localhost:8000/api/predictions/predictions/advice", {
+        fetch(`${API_URL}/predictions/predictions/advice`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

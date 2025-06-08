@@ -104,7 +104,7 @@ export default function ProductsPage() {
 
   const handleAddProduct = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/products/products", {
+      const response = await fetch(`${API_URL}/products/products`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

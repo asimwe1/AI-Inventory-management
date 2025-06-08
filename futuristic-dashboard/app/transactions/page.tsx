@@ -88,9 +88,11 @@ export default function TransactionsPage() {
     fetchProducts()
   }, [])
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/inventory/inventory/transactions")
+      const response = await fetch(`${API_URL}/inventory/inventory/transactions`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -108,7 +110,7 @@ export default function TransactionsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/inventory/inventory/status")
+      const response = await fetch(`${API_URL}/inventory/inventory/status`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
@@ -140,8 +142,8 @@ export default function TransactionsPage() {
         : newTransaction.transaction_type === "shipped"
         ? "ship"
         : "adjust"
-      console.log("Posting to:", `http://localhost:8000/api/inventory/inventory/${endpoint}`, "Data:", newTransaction)
-      const response = await fetch(`http://localhost:8000/api/inventory/inventory/${endpoint}`, {
+      console.log("Posting to:", `${API_URL}/inventory/inventory/${endpoint}`, "Data:", newTransaction)
+      const response = await fetch(`${API_URL}/inventory/inventory/${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

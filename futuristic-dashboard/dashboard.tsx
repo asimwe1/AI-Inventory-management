@@ -117,12 +117,14 @@ export default function Dashboard() {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   // Fetch inventory data
   useEffect(() => {
     const fetchInventoryData = async () => {
       try {
         // Fetch products
-        const productsResponse = await fetch('http://localhost:8000/api/products/products/');
+        const productsResponse = await fetch(`${API_URL}/products/products/`);
         if (!productsResponse.ok) {
           throw new Error(`Failed to fetch products: HTTP ${productsResponse.status}`);
         }
@@ -154,7 +156,7 @@ export default function Dashboard() {
         setStockAlerts(alerts);
 
         // Fetch recent transactions
-        const transactionsResponse = await fetch('http://localhost:8000/api/inventory/inventory/transactions');
+        const transactionsResponse = await fetch(`${API_URL}/inventory/inventory/transactions`);
         if (!transactionsResponse.ok) {
           throw new Error(`Failed to fetch transactions: HTTP ${transactionsResponse.status}`);
         }
@@ -167,7 +169,7 @@ export default function Dashboard() {
 
         // Fetch inventory advice
         const advicePromises = productsData.map((product: Product) =>
-          fetch('http://localhost:8000/api/predictions/predictions/advice', {
+          fetch(`${API_URL}/predictions/predictions/advice`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
